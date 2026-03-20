@@ -1,0 +1,15 @@
+{
+  "name": "webxr-pointcloud-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.2.0",
+    "three": "^0.183.2",
+    "vite": "^8.0.1"
+  }
+}
