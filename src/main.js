@@ -9,6 +9,8 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 
 const POINTCLOUD_PATH = 'Pointclouds/output.pcd';
 const AUTO_CENTER = false;  // set true to re-center clouds on load
+const XR_FOVEATION = 0;
+const DEFAULT_SOFT_POINTS = true;
 const BG_COLOR = 0x111111;
 const MOVE_SPEED = 2.5;        // meters per second (fly locomotion)
 const STICK_DEADZONE = 0.15;
@@ -16,6 +18,7 @@ const TURN_SPEED = Math.PI * 1.2;
 const PT_SIZE_MIN = 0.0005;
 const PT_SIZE_MAX = 0.05;
 const PT_SIZE_STEP = 0.0005;
+const PT_SIZE_SCALE = 3;
 const CLOUD_ROTATE_SPEED = 1.4;
 const CLOUD_TILT_LIMIT = Math.PI / 3;
 const CLOUD_ROTATE_STEP = Math.PI / 18;
@@ -36,6 +39,7 @@ const CLOUD_PRESETS = {
 let renderer, scene, camera, cameraRig, orbit, pointsMaterial, pointSprite;
 let teleportMarker, teleportLine;
 let cloudRoot, pointCloud, activeCloudPreset;
+let useSoftPoints = DEFAULT_SOFT_POINTS;
 const clock = new THREE.Clock();
 const btnReady = { up: true, down: true };
 
@@ -83,6 +87,7 @@ function init() {
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.xr.enabled = true;
+  renderer.xr.setFoveation(XR_FOVEATION);
   document.getElementById('container').appendChild(renderer.domElement);
   pointSprite = createPointSprite();
 
@@ -129,6 +134,8 @@ function init() {
       rotateCloud(0, -CLOUD_TILT_STEP);
     } else if (e.key.toLowerCase() === 'r') {
       resetViewToPreset();
+    } else if (e.key.toLowerCase() === 'v') {
+      togglePointRenderMode();
     }
   });
 
@@ -208,6 +215,32 @@ function createPointSprite() {
   return new THREE.CanvasTexture(canvas);
 }
 
+function createPointsMaterial(pointSize) {
+  return new THREE.PointsMaterial({
+    size: pointSize,
+    vertexColors: true,
+    sizeAttenuation: true,
+    alphaMap: useSoftPoints ? pointSprite : null,
+    transparent: useSoftPoints,
+    alphaTest: useSoftPoints ? 0.15 : 0,
+    depthWrite: !useSoftPoints,
+  });
+}
+
+function togglePointRenderMode() {
+  if (!pointCloud || !pointsMaterial) return;
+
+  const size = pointsMaterial.size;
+  useSoftPoints = !useSoftPoints;
+
+  const nextMaterial = createPointsMaterial(size);
+  pointCloud.material.dispose();
+  pointCloud.material = nextMaterial;
+  pointsMaterial = nextMaterial;
+
+  console.log(`Point render mode: ${useSoftPoints ? 'soft sprites' : 'solid squares'}`);
+}
+
 // ── Point Cloud Loading ────────────────────────────────────
 
 function loadPointCloud(path) {
@@ -279,17 +312,10 @@ function buildCloud(geometry, preset = {}) {
   // Auto-scale point size relative to cloud dimensions
   const avgDim = (size.x + size.y + size.z) / 3;
   const autoSize = Math.max(PT_SIZE_MIN, Math.min(PT_SIZE_MAX, avgDim * 0.0012));
-  const pointSize = preset.pointSize ?? autoSize;
+  const basePointSize = preset.pointSize ?? autoSize;
+  const pointSize = Math.max(PT_SIZE_MIN, Math.min(PT_SIZE_MAX, basePointSize * PT_SIZE_SCALE));
 
-  pointsMaterial = new THREE.PointsMaterial({
-    size: pointSize,
-    vertexColors: true,
-    sizeAttenuation: true,
-    alphaMap: pointSprite,
-    transparent: true,
-    alphaTest: 0.15,
-    depthWrite: false,
-  });
+  pointsMaterial = createPointsMaterial(pointSize);
 
   pointCloud = new THREE.Points(geometry, pointsMaterial);
   cloudRoot.add(pointCloud);
