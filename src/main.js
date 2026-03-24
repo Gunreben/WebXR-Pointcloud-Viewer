@@ -7,7 +7,8 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 
 // ── Configuration ──────────────────────────────────────────
 
-const POINTCLOUD_PATH = '/Pointclouds/ouster_frame_001.pcd';
+const POINTCLOUD_PATH = 'Pointclouds/output.pcd';
+const AUTO_CENTER = false;  // set true to re-center clouds on load
 const BG_COLOR = 0x111111;
 const MOVE_SPEED = 2.5;        // meters per second (fly locomotion)
 const STICK_DEADZONE = 0.15;
@@ -255,8 +256,9 @@ function buildCloud(geometry, preset = {}) {
   const center = bbox.getCenter(new THREE.Vector3());
   const size = bbox.getSize(new THREE.Vector3());
 
-  // Center horizontally, place bottom at y = 0
-  geometry.translate(-center.x, -bbox.min.y, -center.z);
+  if (AUTO_CENTER) {
+    geometry.translate(-center.x, -bbox.min.y, -center.z);
+  }
 
   // Generate height-based coloring when vertex colors are missing
   if (!geometry.hasAttribute('color')) {
