@@ -7,7 +7,7 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 
 // ── Configuration ──────────────────────────────────────────
 
-const POINTCLOUD_PATH = 'Pointclouds/output.pcd';
+const POINTCLOUD_PATH = 'Pointclouds/people_neon_transformed.ply';
 const AUTO_CENTER = false;  // set true to re-center clouds on load
 const XR_FOVEATION = 0;
 const DEFAULT_SOFT_POINTS = true;
