@@ -2,6 +2,14 @@
 
 Simple WebXR/Three.js viewer for `.ply` and `.pcd` point clouds, plus a helper script for correcting the orientation and origin of clouds extracted from MCAPs.
 
+## GitHub Pages
+
+This project can be deployed as a static GitHub Pages site.
+
+- The production build copies the `Pointclouds/` directory into `dist/Pointclouds/`.
+- The GitHub Actions workflow at `.github/workflows/deploy.yml` publishes the site automatically when changes are pushed to `main`.
+- In the repository settings, set Pages to use `GitHub Actions` as the source.
+
 ## Pointcloud Correction
 
 Use `pointcloud_transform.py` to rewrite a point cloud with a corrected origin, rotation, and optional translation.
